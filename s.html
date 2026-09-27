@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Sales Executive Dashboard</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Top Header -->
+    <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-2 sm:mb-0">
+                <div class="bg-indigo-700 p-2 rounded-lg"><i class="fa-solid fa-school-flag text-xl text-yellow-300"></i></div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">School Network Sales Dashboard</h1>
+                    <p class="text-xs text-indigo-200">Executive Performance & Transaction Analytics</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 text-sm">
+                <span class="bg-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-700 font-medium"><i class="fa-regular fa-calendar mr-2 text-indigo-300"></i>Period: <span id="currentDateRangeLabel">Apr 2026 - Jun 2026</span></span>
+                <button onclick="resetFilters()" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold px-3 py-1.5 rounded-lg transition shadow-sm text-xs"><i class="fa-solid fa-rotate-right mr-1"></i>Reset Slicers</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Slicers / Filters Section -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-500"><i class="fa-solid fa-filter mr-1 text-indigo-600"></i> Interactive Slicers</h2>
+                <span class="text-xs text-gray-400">Filter data instantly across all KPIs & charts</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                <!-- Branch Slicer -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Branch</label>
+                    <select id="filterBranch" onchange="filterData()" class="w-full text-sm bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">All Branches</option>
+                    </select>
+                </div>
+                <!-- Category Slicer -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Product Category</label>
+                    <select id="filterCategory" onchange="filterData()" class="w-full text-sm bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <!-- Payment Mode Slicer -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Payment Mode</label>
+                    <select id="filterPayment" onchange="filterData()" class="w-full text-sm bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">All Payment Modes</option>
+                    </select>
+                </div>
+                <!-- Start Date -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Start Date</label>
+                    <input type="date" id="filterStartDate" onchange="filterData()" value="2026-04-01" class="w-full text-sm bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <!-- End Date -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">End Date</label>
+                    <input type="date" id="filterEndDate" onchange="filterData()" value="2026-06-30" class="w-full text-sm bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+            </div>
+        </section>
+
+        <!-- KPI Summary Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Net Sales</p>
+                    <h3 id="kpiNetSales" class="text-2xl font-bold text-gray-900 mt-1">INR 0</h3>
+                    <p class="text-xs text-green-600 mt-1 font-medium"><i class="fa-solid fa-arrow-trend-up"></i> Gross: <span id="kpiGrossSales">INR 0</span></p>
+                </div>
+                <div class="bg-indigo-50 text-indigo-600 p-3.5 rounded-xl"><i class="fa-solid fa-indian-rupee-sign text-xl"></i></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Quantity Sold</p>
+                    <h3 id="kpiQuantity" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
+                    <p class="text-xs text-blue-600 mt-1 font-medium"><i class="fa-solid fa-box-open"></i> Across 12 products</p>
+                </div>
+                <div class="bg-blue-50 text-blue-600 p-3.5 rounded-xl"><i class="fa-solid fa-cubes text-xl"></i></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Discounts Given</p>
+                    <h3 id="kpiDiscount" class="text-2xl font-bold text-gray-900 mt-1">INR 0</h3>
+                    <p class="text-xs text-amber-600 mt-1 font-medium"><i class="fa-solid fa-percent"></i> Avg ~5.2% rate</p>
+                </div>
+                <div class="bg-amber-50 text-amber-600 p-3.5 rounded-xl"><i class="fa-solid fa-tags text-xl"></i></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Invoices</p>
+                    <h3 id="kpiInvoices" class="text-2xl font-bold text-gray-900 mt-1">0</h3>
+                    <p class="text-xs text-purple-600 mt-1 font-medium"><i class="fa-solid fa-file-invoice"></i> 3 School Owners</p>
+                </div>
+                <div class="bg-purple-50 text-purple-600 p-3.5 rounded-xl"><i class="fa-solid fa-receipt text-xl"></i></div>
+            </div>
+        </section>
+
+        <!-- Charts Grid -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Branch Sales Bar Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-chart-column mr-2 text-indigo-600"></i>Net Sales by Branch</h3>
+                    <span class="text-xs text-gray-400">INR</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="branchChart"></canvas>
+                </div>
+            </div>
+            <!-- Product Category Sales Bar Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-chart-bar mr-2 text-emerald-600"></i>Net Sales by Product Category</h3>
+                    <span class="text-xs text-gray-400">INR</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <!-- Daily Sales Trend Line Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-chart-line mr-2 text-blue-600"></i>Daily Sales Trend</h3>
+                    <span class="text-xs text-gray-400">Timeline</span>
+                </div>
+                <div class="relative h-72">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            <!-- Payment Mode Share Doughnut Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-chart-pie mr-2 text-purple-600"></i>Payment Mode Share</h3>
+                    <span class="text-xs text-gray-400">Percentage</span>
+                </div>
+                <div class="relative h-72 flex justify-center">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Transaction Table Section -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-table-list mr-2 text-indigo-600"></i>Transaction Ledger</h3>
+                    <p class="text-xs text-gray-500">Showing filtered records based on active slicers</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="tableSearch" onkeyup="filterData()" placeholder="Search invoice, product, branch..." class="text-sm bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <span id="recordCountBadge" class="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full">30 records</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-xs tracking-wider">
+                            <th class="py-3 px-4 font-semibold">Date</th>
+                            <th class="py-3 px-4 font-semibold">Invoice</th>
+                            <th class="py-3 px-4 font-semibold">Branch</th>
+                            <th class="py-3 px-4 font-semibold">Category</th>
+                            <th class="py-3 px-4 font-semibold">Product</th>
+                            <th class="py-3 px-4 font-semibold text-right">Qty</th>
+                            <th class="py-3 px-4 font-semibold text-right">Net Sales (INR)</th>
+                            <th class="py-3 px-4 font-semibold">Payment</th>
+                            <th class="py-3 px-4 font-semibold">Salesperson</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-200 text-gray-700">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-500">
+        <p>School Network Sales Intelligence Dashboard &bull; Professional Management Suite &copy; 2026</p>
+    </footer>
+
+    <!-- JavaScript Data and Dashboard Logic -->
+    <script>
+        // Raw Dataset embedded directly from excel analysis
+        const rawData = [
+          { Date: "2026-04-01", "Invoice No": "INV001", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Books", Product: "Mathematics Book", Quantity: 50, "Unit Price": 350, "Gross Sales": 17500, "Discount %": 0.05, "Discount Amount": 875.0, "Net Sales": 16625.0, "Payment Mode": "UPI", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-04-03", "Invoice No": "INV002", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Books", Product: "English Book", Quantity: 45, "Unit Price": 300, "Gross Sales": 13500, "Discount %": 0.05, "Discount Amount": 675.0, "Net Sales": 12825.0, "Payment Mode": "Cash", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-04-05", "Invoice No": "INV003", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Stationery", Product: "Notebook", Quantity: 100, "Unit Price": 80, "Gross Sales": 8000, "Discount %": 0.02, "Discount Amount": 160.0, "Net Sales": 7840.0, "Payment Mode": "UPI", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-04-07", "Invoice No": "INV004", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Stationery", Product: "Pen", Quantity: 200, "Unit Price": 20, "Gross Sales": 4000, "Discount %": 0.02, "Discount Amount": 80.0, "Net Sales": 3920.0, "Payment Mode": "Cash", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-04-10", "Invoice No": "INV005", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Uniform", Product: "School Shirt", Quantity: 60, "Unit Price": 550, "Gross Sales": 33000, "Discount %": 0.08, "Discount Amount": 2640.0, "Net Sales": 30360.0, "Payment Mode": "Bank Transfer", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-04-12", "Invoice No": "INV006", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Uniform", Product: "School Pant", Quantity: 55, "Unit Price": 650, "Gross Sales": 35750, "Discount %": 0.08, "Discount Amount": 2860.0, "Net Sales": 32890.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-04-15", "Invoice No": "INV007", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Books", Product: "Science Book", Quantity: 40, "Unit Price": 400, "Gross Sales": 16000, "Discount %": 0.05, "Discount Amount": 800.0, "Net Sales": 15200.0, "Payment Mode": "Cash", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-04-18", "Invoice No": "INV008", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Books", Product: "Computer Book", Quantity: 35, "Unit Price": 450, "Gross Sales": 15750, "Discount %": 0.05, "Discount Amount": 787.5, "Net Sales": 14962.5, "Payment Mode": "UPI", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-04-20", "Invoice No": "INV009", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Stationery", Product: "Pencil", Quantity: 300, "Unit Price": 10, "Gross Sales": 3000, "Discount %": 0.02, "Discount Amount": 60.0, "Net Sales": 2940.0, "Payment Mode": "Cash", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-04-22", "Invoice No": "INV010", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Stationery", Product: "School Bag", Quantity: 30, "Unit Price": 900, "Gross Sales": 27000, "Discount %": 0.1, "Discount Amount": 2700.0, "Net Sales": 24300.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-04-25", "Invoice No": "INV011", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Uniform", Product: "School Tie", Quantity: 75, "Unit Price": 150, "Gross Sales": 11250, "Discount %": 0.05, "Discount Amount": 562.5, "Net Sales": 10687.5, "Payment Mode": "Cash", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-04-27", "Invoice No": "INV012", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Books", Product: "Bengali Book", Quantity: 50, "Unit Price": 280, "Gross Sales": 14000, "Discount %": 0.05, "Discount Amount": 700.0, "Net Sales": 13300.0, "Payment Mode": "UPI", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-05-02", "Invoice No": "INV013", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Books", Product: "Mathematics Book", Quantity: 65, "Unit Price": 350, "Gross Sales": 22750, "Discount %": 0.05, "Discount Amount": 1137.5, "Net Sales": 21612.5, "Payment Mode": "Bank Transfer", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-05-05", "Invoice No": "INV014", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Stationery", Product: "Notebook", Quantity: 150, "Unit Price": 80, "Gross Sales": 12000, "Discount %": 0.03, "Discount Amount": 360.0, "Net Sales": 11640.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-05-08", "Invoice No": "INV015", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Uniform", Product: "School Shirt", Quantity: 70, "Unit Price": 550, "Gross Sales": 38500, "Discount %": 0.08, "Discount Amount": 3080.0, "Net Sales": 35420.0, "Payment Mode": "Cash", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-05-11", "Invoice No": "INV016", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Uniform", Product: "School Pant", Quantity: 80, "Unit Price": 650, "Gross Sales": 52000, "Discount %": 0.08, "Discount Amount": 4160.0, "Net Sales": 47840.0, "Payment Mode": "UPI", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-05-14", "Invoice No": "INV017", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Books", Product: "English Book", Quantity: 70, "Unit Price": 300, "Gross Sales": 21000, "Discount %": 0.05, "Discount Amount": 1050.0, "Net Sales": 19950.0, "Payment Mode": "Cash", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-05-17", "Invoice No": "INV018", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Stationery", Product: "Pen", Quantity: 350, "Unit Price": 20, "Gross Sales": 7000, "Discount %": 0.02, "Discount Amount": 140.0, "Net Sales": 6860.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-05-20", "Invoice No": "INV019", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Books", Product: "Science Book", Quantity: 55, "Unit Price": 400, "Gross Sales": 22000, "Discount %": 0.05, "Discount Amount": 1100.0, "Net Sales": 20900.0, "Payment Mode": "Bank Transfer", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-05-23", "Invoice No": "INV020", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Stationery", Product: "School Bag", Quantity: 45, "Unit Price": 900, "Gross Sales": 40500, "Discount %": 0.1, "Discount Amount": 4050.0, "Net Sales": 36450.0, "Payment Mode": "UPI", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-05-26", "Invoice No": "INV021", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Uniform", Product: "School Tie", Quantity: 100, "Unit Price": 150, "Gross Sales": 15000, "Discount %": 0.05, "Discount Amount": 750.0, "Net Sales": 14250.0, "Payment Mode": "Cash", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-05-29", "Invoice No": "INV022", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Books", Product: "Computer Book", Quantity: 60, "Unit Price": 450, "Gross Sales": 27000, "Discount %": 0.05, "Discount Amount": 1350.0, "Net Sales": 25650.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-06-03", "Invoice No": "INV023", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Books", Product: "Bengali Book", Quantity: 75, "Unit Price": 280, "Gross Sales": 21000, "Discount %": 0.05, "Discount Amount": 1050.0, "Net Sales": 19950.0, "Payment Mode": "Cash", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-06-06", "Invoice No": "INV024", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Stationery", Product: "Pencil", Quantity: 500, "Unit Price": 10, "Gross Sales": 5000, "Discount %": 0.02, "Discount Amount": 100.0, "Net Sales": 4900.0, "Payment Mode": "UPI", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-06-09", "Invoice No": "INV025", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Uniform", Product: "School Shirt", Quantity: 90, "Unit Price": 550, "Gross Sales": 49500, "Discount %": 0.08, "Discount Amount": 3960.0, "Net Sales": 45540.0, "Payment Mode": "Bank Transfer", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-06-12", "Invoice No": "INV026", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Uniform", Product: "School Pant", Quantity: 65, "Unit Price": 650, "Gross Sales": 42250, "Discount %": 0.08, "Discount Amount": 3380.0, "Net Sales": 38870.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" },
+          { Date: "2026-06-15", "Invoice No": "INV027", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Books", Product: "Mathematics Book", Quantity: 80, "Unit Price": 350, "Gross Sales": 28000, "Discount %": 0.05, "Discount Amount": 1400.0, "Net Sales": 26600.0, "Payment Mode": "Cash", Salesperson: "Suman", "Customer Type": "Student" },
+          { Date: "2026-06-18", "Invoice No": "INV028", Owner: "School Owner C", Branch: "South Branch", "Product Category": "Books", Product: "English Book", Quantity: 85, "Unit Price": 300, "Gross Sales": 25500, "Discount %": 0.05, "Discount Amount": 1275.0, "Net Sales": 24225.0, "Payment Mode": "UPI", Salesperson: "Priya", "Customer Type": "Student" },
+          { Date: "2026-06-21", "Invoice No": "INV029", Owner: "School Owner A", Branch: "Main Branch", "Product Category": "Stationery", Product: "Notebook", Quantity: 200, "Unit Price": 80, "Gross Sales": 16000, "Discount %": 0.03, "Discount Amount": 480.0, "Net Sales": 15520.0, "Payment Mode": "Cash", Salesperson: "Arindam", "Customer Type": "Student" },
+          { Date: "2026-06-24", "Invoice No": "INV030", Owner: "School Owner B", Branch: "North Branch", "Product Category": "Stationery", Product: "Pen", Quantity: 400, "Unit Price": 20, "Gross Sales": 8000, "Discount %": 0.02, "Discount Amount": 160.0, "Net Sales": 7840.0, "Payment Mode": "UPI", Salesperson: "Rahul", "Customer Type": "Student" }
+        ];
+
+        let branchChart, categoryChart, trendChart, paymentChart;
+
+        // Initialize Slicers on load
+        function initSlicers() {
+            const branches = [...new Set(rawData.map(item => item.Branch))];
+            const categories = [...new Set(rawData.map(item => item["Product Category"]))];
+            const payments = [...new Set(rawData.map(item => item["Payment Mode"]))];
+
+            const branchSelect = document.getElementById('filterBranch');
+            branches.forEach(b => {
+                let opt = document.createElement('option');
+                opt.value = b; opt.textContent = b;
+                branchSelect.appendChild(opt);
+            });
+
+            const catSelect = document.getElementById('filterCategory');
+            categories.forEach(c => {
+                let opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                catSelect.appendChild(opt);
+            });
+
+            const paySelect = document.getElementById('filterPayment');
+            payments.forEach(p => {
+                let opt = document.createElement('option');
+                opt.value = p; opt.textContent = p;
+                paySelect.appendChild(opt);
+            });
+        }
+
+        // Format Currency in INR
+        function formatINR(amount) {
+            return "INR " + amount.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            const ctxBranch = document.getElementById('branchChart').getContext('2d');
+            branchChart = new Chart(ctxBranch, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Net Sales', data: [], backgroundColor: '#6366f1', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+            categoryChart = new Chart(ctxCategory, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Net Sales', data: [], backgroundColor: '#10b981', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Net Sales', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctxPayment = document.getElementById('paymentChart').getContext('2d');
+            paymentChart = new Chart(ctxPayment, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#f59e0b', '#3b82f6', '#10b981'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // Reset Slicers
+        function resetFilters() {
+            document.getElementById('filterBranch').value = "";
+            document.getElementById('filterCategory').value = "";
+            document.getElementById('filterPayment').value = "";
+            document.getElementById('filterStartDate').value = "2026-04-01";
+            document.getElementById('filterEndDate').value = "2026-06-30";
+            document.getElementById('tableSearch').value = "";
+            filterData();
+        }
+
+        // Core Filter & Update Logic
+        function filterData() {
+            const selectedBranch = document.getElementById('filterBranch').value;
+            const selectedCategory = document.getElementById('filterCategory').value;
+            const selectedPayment = document.getElementById('filterPayment').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            const searchQuery = document.getElementById('tableSearch').value.toLowerCase();
+
+            // Filter raw data
+            const filtered = rawData.filter(item => {
+                let match = true;
+                if (selectedBranch && item.Branch !== selectedBranch) match = false;
+                if (selectedCategory && item["Product Category"] !== selectedCategory) match = false;
+                if (selectedPayment && item["Payment Mode"] !== selectedPayment) match = false;
+                if (startDate && item.Date < startDate) match = false;
+                if (endDate && item.Date > endDate) match = false;
+                if (searchQuery) {
+                    let textMatch = Object.values(item).some(val => String(val).toLowerCase().includes(searchQuery));
+                    if (!textMatch) match = false;
+                }
+                return match;
+            });
+
+            updateKPIs(filtered);
+            updateTable(filtered);
+            updateCharts(filtered);
+            
+            document.getElementById('currentDateRangeLabel').textContent = `${startDate} to ${endDate}`;
+        }
+
+        // Update KPIs
+        function updateKPIs(data) {
+            const netSales = data.reduce((acc, curr) => acc + curr["Net Sales"], 0);
+            const grossSales = data.reduce((acc, curr) => acc + curr["Gross Sales"], 0);
+            const quantity = data.reduce((acc, curr) => acc + curr["Quantity"], 0);
+            const discount = data.reduce((acc, curr) => acc + curr["Discount Amount"], 0);
+            const invoices = data.length;
+
+            document.getElementById('kpiNetSales').textContent = formatINR(netSales);
+            document.getElementById('kpiGrossSales').textContent = formatINR(grossSales);
+            document.getElementById('kpiQuantity').textContent = quantity.toLocaleString('en-IN');
+            document.getElementById('kpiDiscount').textContent = formatINR(discount);
+            document.getElementById('kpiInvoices').textContent = invoices;
+        }
+
+        // Update Transaction Table
+        function updateTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            document.getElementById('recordCountBadge').textContent = `${data.length} records`;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-gray-400">No transactions match the selected filters.</td></tr>`;
+                return;
+            }
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs text-gray-500">${item.Date}</td>
+                    <td class="py-3 px-4 font-semibold text-indigo-600">${item["Invoice No"]}</td>
+                    <td class="py-3 px-4">${item.Branch}</td>
+                    <td class="py-3 px-4"><span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">${item["Product Category"]}</span></td>
+                    <td class="py-3 px-4 font-medium">${item.Product}</td>
+                    <td class="py-3 px-4 text-right">${item.Quantity}</td>
+                    <td class="py-3 px-4 text-right font-bold text-gray-900">${formatINR(item["Net Sales"])}</td>
+                    <td class="py-3 px-4"><span class="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">${item["Payment Mode"]}</span></td>
+                    <td class="py-3 px-4 text-xs text-gray-500">${item.Salesperson}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update Charts Data
+        function updateCharts(data) {
+            // 1. Branch Sales
+            const branchMap = {};
+            data.forEach(item => {
+                branchMap[item.Branch] = (branchMap[item.Branch] || 0) + item["Net Sales"];
+            });
+            branchChart.data.labels = Object.keys(branchMap);
+            branchChart.data.datasets[0].data = Object.values(branchMap);
+            branchChart.update();
+
+            // 2. Category Sales
+            const catMap = {};
+            data.forEach(item => {
+                catMap[item["Product Category"]] = (catMap[item["Product Category"]] || 0) + item["Net Sales"];
+            });
+            categoryChart.data.labels = Object.keys(catMap);
+            categoryChart.data.datasets[0].data = Object.values(catMap);
+            categoryChart.update();
+
+            // 3. Daily Trend
+            const trendMap = {};
+            data.sort((a,b) => new Date(a.Date) - new Date(b.Date)).forEach(item => {
+                trendMap[item.Date] = (trendMap[item.Date] || 0) + item["Net Sales"];
+            });
+            trendChart.data.labels = Object.keys(trendMap);
+            trendChart.data.datasets[0].data = Object.values(trendMap);
+            trendChart.update();
+
+            // 4. Payment Mode Share
+            const payMap = {};
+            data.forEach(item => {
+                payMap[item["Payment Mode"]] = (payMap[item["Payment Mode"]] || 0) + item["Net Sales"];
+            });
+            paymentChart.data.labels = Object.keys(payMap);
+            paymentChart.data.datasets[0].data = Object.values(payMap);
+            paymentChart.update();
+        }
+
+        // Run on startup
+        window.onload = function() {
+            initSlicers();
+            initCharts();
+            filterData();
+        };
+    </script>
+</body>
+</html>
